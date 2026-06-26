@@ -381,10 +381,10 @@ function updateBoardLayout(){
   const svg=document.getElementById('board');
   CELL_W=78; CELL_H=44; SKEW_X=48;
   LAYER_LAYOUT={
-    4:{ox:210,oy:230,color:'#7dd3fc',fill:'rgba(125,211,252,.055)',name:'Layer 4'},
-    3:{ox:210,oy:425,color:'#67e8f9',fill:'rgba(103,232,249,.050)',name:'Layer 3'},
-    2:{ox:210,oy:620,color:'#38bdf8',fill:'rgba(56,189,248,.055)',name:'Layer 2'},
-    1:{ox:210,oy:815,color:'#0ea5e9',fill:'rgba(14,165,233,.060)',name:'Layer 1'}
+    4:{ox:210,oy:230,color:'#6fa8dc',fill:'rgba(70,120,190,.050)',name:'Layer 4'},
+    3:{ox:210,oy:425,color:'#5b95cf',fill:'rgba(55,105,170,.050)',name:'Layer 3'},
+    2:{ox:210,oy:620,color:'#4d86c4',fill:'rgba(45,90,155,.055)',name:'Layer 2'},
+    1:{ox:210,oy:815,color:'#3f78b9',fill:'rgba(35,75,140,.060)',name:'Layer 1'}
   };
   if(!svg)return;
   if(isMobileBoard() && !document.body.classList.contains('title-visible')){
@@ -847,9 +847,10 @@ function drawPieceIcon(g,type,owner,{selected=false,inCheck=false}={}){
   const edge=selected?'#ffffff':(inCheck?'#fbbf24':'rgba(255,255,255,.92)');
   const diskFill=inCheck?'#fef3c7':bg;
  g.appendChild(svgEl('ellipse',{cx:2,cy:12,rx:20,ry:6.5,fill:'rgba(0,0,0,.25)'}));
- g.appendChild(svgEl('circle',{r:20,fill:diskFill,stroke:edge,'stroke-width':selected?3.8:2.6}));
+ g.appendChild(svgEl('circle',{r:20,fill:diskFill,stroke:edge,'stroke-width':selected?3.0:2.0}));
  g.appendChild(svgEl('circle',{r:17.5,fill:'none',stroke:'rgba(255,255,255,.14)','stroke-width':1.0}));
-  const icon=svgEl('g',{fill:'none',stroke:'#ffffff','stroke-width':4.2,'stroke-linecap':'round','stroke-linejoin':'round',filter:'url(#iconShadow)'});
+  const icon=svgEl('g',{fill:'none',stroke:'#ffffff','stroke-width':4.2,'stroke-linecap':'round','stroke-linejoin':'round',filter:'url(#iconShadow)',
+    transform:'scale(0.88)'});
   if(type==='C'){
     icon.appendChild(svgEl('path',{d:'M-15,7 L-18,-8 L-7,1 L0,-13 L7,1 L18,-8 L15,7 Z',fill:'rgba(255,255,255,.98)',stroke:'none'}));
     icon.appendChild(svgEl('path',{d:'M-16,12 H16'}));
@@ -894,12 +895,12 @@ function drawLayer(svg,z,moveMap,attA,attB){
   const l=LAYER_LAYOUT[z];
   for(let x=1;x<=SIZE;x++)for(let y=1;y<=SIZE;y++){
     const k=key(x,y,z),m=moveMap.get(k);
-    let fill=(x+y)%2===0?'rgba(35,95,158,.42)':'rgba(18,42,75,.50)';
+    let fill=(x+y)%2===0?'rgba(42,86,145,.48)':'rgba(15,28,50,.58)';
     let stroke='rgba(120,184,232,.58)',sw=1.45;
     if(attA.has(k)&&attB.has(k))fill='rgba(138,98,48,.36)';
-    else if(attA.has(k))fill='rgba(35,95,158,.56)';
-    else if(attB.has(k))fill='rgba(163,58,79,.52)';
-    if(m){fill=m.drop?'rgba(138,98,48,.52)':(m.capture?'rgba(163,58,79,.68)':'rgba(47,123,169,.60)');stroke=m.capture?'#ef7184':(m.drop?'#b98a45':'#78B8E8');sw=3.0;}
+    else if(attA.has(k))fill='rgba(58,114,185,.60)';
+    else if(attB.has(k))fill='rgba(145,52,70,.58)';
+    if(m){fill=m.drop?'rgba(138,98,48,.52)':(m.capture?'rgba(163,58,79,.68)':'rgba(47,123,169,.60)');stroke=m.capture?'#ef7184':(m.drop ? '#b88b34' : '#6ba7d9');sw=3.0;}
     const path=svgEl('path',{d:pathForCell(x,y,z),fill,stroke,'stroke-width':sw,class:'cell'});
     path.addEventListener('click',()=>{if(!dropSelectedTo(x,y,z))moveSelectedTo(x,y,z);});
     svg.appendChild(path);
