@@ -846,9 +846,9 @@ function drawPieceIcon(g,type,owner,{selected=false,inCheck=false}={}){
   const stroke=isBlue?'#38bdf8':'#fb7185';
   const edge=selected?'#ffffff':(inCheck?'#fbbf24':'rgba(255,255,255,.92)');
   const diskFill=inCheck?'#fef3c7':bg;
-  g.appendChild(svgEl('ellipse',{cx:3,cy:13,rx:25,ry:9,fill:'rgba(0,0,0,.36)'}));
-  g.appendChild(svgEl('circle',{r:23.5,fill:diskFill,stroke:edge,'stroke-width':selected?4.6:3.2}));
-  g.appendChild(svgEl('circle',{r:20.5,fill:'none',stroke:'rgba(255,255,255,.14)','stroke-width':1.2}));
+ g.appendChild(svgEl('ellipse',{cx:2,cy:12,rx:20,ry:6.5,fill:'rgba(0,0,0,.25)'}));
+ g.appendChild(svgEl('circle',{r:20,fill:diskFill,stroke:edge,'stroke-width':selected?3.8:2.6}));
+ g.appendChild(svgEl('circle',{r:17.5,fill:'none',stroke:'rgba(255,255,255,.14)','stroke-width':1.0}));
   const icon=svgEl('g',{fill:'none',stroke:'#ffffff','stroke-width':4.2,'stroke-linecap':'round','stroke-linejoin':'round',filter:'url(#iconShadow)'});
   if(type==='C'){
     icon.appendChild(svgEl('path',{d:'M-15,7 L-18,-8 L-7,1 L0,-13 L7,1 L18,-8 L15,7 Z',fill:'rgba(255,255,255,.98)',stroke:'none'}));
@@ -939,7 +939,7 @@ function draw(){
   [4,3,2,1].forEach(z=>drawLayer(svg,z,moveMap,attA,attB));
   pieces.forEach(p=>{
     const c=cellCenter(p.x,p.y,p.z),inCheck=p.type==='C'&&isInCheck(p.owner);
-    const g=svgEl('g',{class:'piece',transform:`translate(${c.sx},${c.sy})`,filter:'url(#pieceGlow)'});
+    const g=svgEl('g',{class:'piece',transform:`translate(${c.sx+13},${c.sy-5})`,filter:'url(#pieceGlow)'});
     g.addEventListener('click',e=>{e.stopPropagation();selectPiece(p.id)});
     drawPieceIcon(g,p.type,p.owner,{selected:p.id===selectedId,inCheck});
     svg.appendChild(g);
