@@ -663,7 +663,15 @@ function addMoveLog(owner,piece,from,to,target,isAi,reason){
       at: [to.x, to.y, to.z]
     } : null,
     isAi: !!isAi,
-    reason: reason || null
+    reason: reason || null,
+    board: pieces.map(p => ({
+  id: p.id,
+  owner: p.owner,
+  type: p.type,
+  x: p.x,
+  y: p.y,
+  z: p.z
+  }))
   });
 
   const cap=(target&&canCapture(piece,target))?` × ${ownerName(target.owner)}${shapes[target.type]}${target.type}`:'';
@@ -673,21 +681,47 @@ function addMoveLog(owner,piece,from,to,target,isAi,reason){
   lastMoveRecord={pieceId:piece.id,owner,from:{...from},to:{x:to.x,y:to.y,z:to.z}};
   if(reason)lastAiReason=reason;
 }
-function downloadKifu(){
+function downloadGameRecord(){
   const data={
-    version:'strata-kifu-v1',
-    exportedAt:new Date().toISOString(),
-    winner:winner||null,
-    winReason:winReason||drawReason||null,
-    moveCount:moveNumber-1,
-    moves:window.gameRecord||[]
-  };
+  version:'strata-game-record-v1',
+  exportedAt:new Date().toISOString(),
+
+  game:{
+    mode: gameMode || null,
+    setupMode: document.getElementById('setupMode')?.value || null,
+    timeControlSeconds: timeControlSeconds || null,
+    aiLevel: aiLevel || null,
+    aiDelay: aiDelay || null
+  },
+
+  players:{
+    blue:{
+      owner:'A',
+      name:'Blue',
+      type: gameMode==='human' ? 'Human' : 'Human'
+    },
+    red:{
+      owner:'B',
+      name:'Red',
+      type: gameMode==='human' ? 'Human' : 'AI'
+    }
+  },
+
+  result:{
+    winner:winner || null,
+    winnerName:winner ? ownerName(winner) : null,
+    winReason:winReason || drawReason || null,
+    moveCount:moveNumber-1
+  },
+
+  moves:window.gameRecord || []
+};
 
   const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');
   a.href=url;
-  a.download=`strata-kifu-${new Date().toISOString().replace(/[:.]/g,'-')}.json`;
+  a.download=`strata-game-record-${new Date().toISOString().replace(/[:.]/g,'-')}.json`;
   document.body.appendChild(a);
   a.click();
   a.remove();
