@@ -646,7 +646,53 @@ function executeDrop(owner,type,x,y,z,isAi,reason){
 function selectPiece(id){if(winner||drawReason||gameMode==='aivai'||(gameMode==='ai'&&turn===AI_OWNER))return;const p=pieces.find(q=>q.id===id);if(!p||p.owner!==turn)return;selectedDrop=null;selectedId=id;draw();}
 function moveSelectedTo(x,y,z){if(winner||drawReason||!selectedId)return;const p=pieces.find(q=>q.id===selectedId);const m=legalMoves(p).find(q=>q.x===x&&q.y===y&&q.z===z);if(!m)return;executeMove(p,m,false,'');}
 function executeMove(moving,move,isAi,reason){const from={x:moving.x,y:moving.y,z:moving.z};const target=getPieceAt(move.x,move.y,move.z);if(target&&canCapture(moving,target)){currentMetrics.captures[moving.owner]++;if(target.type==='C'){winner=moving.owner;winReason='capture';markFinish(moving.owner,target.owner,moving.type);}else{hands[moving.owner].push(target.type);}pieces=pieces.filter(p=>p.id!==target.id);}if(currentMetrics.moveCounts[moving.owner]&&currentMetrics.moveCounts[moving.owner][moving.type]!==undefined)currentMetrics.moveCounts[moving.owner][moving.type]++;if(moveNumber===1&&!currentMetrics.firstMove){currentMetrics.firstMove=`${moving.type} ${coord(from)}→${coord(move)}`;}moving.x=move.x;moving.y=move.y;moving.z=move.z;if(moving.type==='C')currentMetrics.coreMoves[moving.owner]++;addMoveLog(moving.owner,moving,from,move,target,isAi,reason);selectedId=null;if(winner){draw();return;}turn=opponent(turn);if(isCoreSurrounded(turn)){winner=opponent(turn);winReason='surround';markFinish(winner,turn,moving.type);moveHistory.push(`${ownerName(turn)} Core has been surrounded. ${ownerName(winner)} wins by encirclement.`);}else if(isCheckmate(turn)){winner=opponent(turn);winReason='mate';markFinish(winner,turn,moving.type);}else if(isStalemate(turn)){winner=opponent(turn);winReason='stalemate';moveHistory.push(`${ownerName(turn)} has been completely blocked. ${ownerName(winner)} wins by blockade.`);}else recordPosition();if(isInCheck(turn))currentMetrics.checks[opponent(turn)]++;if(!batchRunning){draw();scheduleAiIfNeeded();}}
-function addMoveLog(owner,piece,from,to,target,isAi,reason){const cap=(target&&canCapture(piece,target))?` × ${ownerName(target.owner)}${shapes[target.type]}${target.type}`:'';const check=target&&target.type==='C'?'#':(isInCheck(opponent(owner))?'+':'');moveHistory.push(`${moveNumber}. ${ownerName(owner)}${isAi?'AI':''} ${shapes[piece.type]}${piece.type} ${coord(from)} → ${coord(to)}${cap}${check}`);moveNumber++;lastMoveRecord={pieceId:piece.id,owner,from:{...from},to:{x:to.x,y:to.y,z:to.z}};if(reason)lastAiReason=reason;}
+function addMoveLog(owner,piece,from,to,target,isAi,reason){
+  window.gameRecord = window.gameRecord || [];
+
+  window.gameRecord.push({
+    moveNumber,
+    player: owner,
+    playerName: ownerName(owner),
+    piece: piece.type,
+    from: [from.x, from.y, from.z],
+    to: [to.x, to.y, to.z],
+    captured: (target&&canCapture(piece,target)) ? {
+      owner: target.owner,
+      ownerName: ownerName(target.owner),
+      piece: target.type,
+      at: [to.x, to.y, to.z]
+    } : null,
+    isAi: !!isAi,
+    reason: reason || null
+  });
+
+  const cap=(target&&canCapture(piece,target))?` × ${ownerName(target.owner)}${shapes[target.type]}${target.type}`:'';
+  const check=target&&target.type==='C'?'#':(isInCheck(opponent(owner))?'+':'');
+  moveHistory.push(`${moveNumber}. ${ownerName(owner)}${isAi?'AI':''} ${shapes[piece.type]}${piece.type} ${coord(from)} → ${coord(to)}${cap}${check}`);
+  moveNumber++;
+  lastMoveRecord={pieceId:piece.id,owner,from:{...from},to:{x:to.x,y:to.y,z:to.z}};
+  if(reason)lastAiReason=reason;
+}
+function downloadKifu(){
+  const data={
+    version:'strata-kifu-v1',
+    exportedAt:new Date().toISOString(),
+    winner:winner||null,
+    winReason:winReason||drawReason||null,
+    moveCount:moveNumber-1,
+    moves:window.gameRecord||[]
+  };
+
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download=`strata-kifu-${new Date().toISOString().replace(/[:.]/g,'-')}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
 function distanceToCore(owner,x,y,z){const c=getCore(owner);return c?Math.max(Math.abs(x-c.x),Math.abs(y-c.y),Math.abs(z-c.z)):0;}
 function actionMovedType(action){return action.drop?action.type:(action.piece?action.piece.type:'');}
 function actionDestination(action){return action.drop?(action.move||action):action.move;}
