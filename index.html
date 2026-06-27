@@ -318,7 +318,76 @@ body.title-visible .notice-lane{display:none!important;}
   body:not(.title-visible) .notice-lane{min-height:34px;padding:3px 8px 0;order:0;}
   .notice-lane .winner,.notice-lane .check{width:100%!important;font-size:12px!important;padding:7px 10px!important;border-radius:12px!important;}
 }
+.hand-row.piece-stand{
+  display:grid !important;
+  grid-template-columns:72px 1fr !important;
+  align-items:start !important;
+  gap:8px !important;
+  min-height:54px !important;
+  height:auto !important;
+  max-height:none !important;
+  overflow:visible !important;
+}
 
+.captured-label{
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+  font-size:12px;
+  line-height:1.1;
+}
+
+.captured-list{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  align-items:center;
+  overflow:visible;
+}
+
+.captured-list .handpiece{
+  width:34px !important;
+  height:34px !important;
+  min-width:34px !important;
+  min-height:34px !important;
+  padding:0 !important;
+  border-radius:8px !important;
+}
+
+.captured-list .handpiece svg{
+  width:24px !important;
+  height:24px !important;
+}
+
+@media (max-width:640px){
+  .hand-row.piece-stand{
+    grid-template-columns:54px 1fr !important;
+    min-height:26px !important;
+    max-height:30px !important;
+    overflow:hidden !important;
+    gap:4px !important;
+  }
+
+  .captured-list{
+    flex-wrap:nowrap;
+    overflow-x:auto;
+    overflow-y:hidden;
+    gap:3px;
+  }
+
+  .captured-list .handpiece{
+    width:22px !important;
+    height:22px !important;
+    min-width:22px !important;
+    min-height:22px !important;
+    border-radius:6px !important;
+  }
+
+  .captured-list .handpiece svg{
+    width:16px !important;
+    height:16px !important;
+  }
+}
 </style>
 </head>
 <body class="title-visible">
@@ -828,10 +897,18 @@ function drawHands(){
   function side(owner){
     const cls=owner==='A'?'blue':'red';
     const list=[...(hands[owner]||[])].filter(t=>order.includes(t)).sort((a,b)=>order.indexOf(a)-order.indexOf(b));
-    let html=`<div class="hand-row piece-stand ${owner==='A'?'blue-stand':'red-stand'}"><div class="hand-title"><b class="${cls}">${ownerName(owner)}</b><span class="note">Drop L${dropLayer(owner)}</span></div><div class="hand-counts" aria-label="${ownerName(owner)} piece stand">`;
-    if(list.length){ list.forEach((t,i)=>{ html+=pieceButton(owner,t,i); }); }
-    else{ html+=`<span class="piece-stand-empty">No captured pieces</span>`; }
-    return html+'</div></div>';
+   let html=`<div class="hand-row piece-stand ${owner==='A'?'blue':'red'}">`;
+html+=`<div class="captured-label"><b>${ownerName(owner)}</b><span>Drop ${owner==='A'?'L2':'L3'}</span></div>`;
+html+=`<div class="captured-list">`;
+
+if(list.length){
+  list.forEach((t,i)=>{ html+=pieceButton(owner,t,i); });
+}else{
+  html+=`<span class="piece-stand-empty">No captured pieces</span>`;
+}
+
+html+=`</div></div>`;
+return html+`</div>`;
   }
   el.innerHTML=side('A')+side('B');
 }
@@ -846,6 +923,11 @@ function drawPieceIcon(g,type,owner,{selected=false,inCheck=false}={}){
   const stroke=isBlue?'#38bdf8':'#fb7185';
   const edge=selected?'#ffffff':(inCheck?'#fbbf24':'rgba(255,255,255,.92)');
   const diskFill=inCheck?'#fef3c7':bg;
+ g.appendChild(svgEl('circle',{
+  r:30,
+  fill:'transparent',
+  'pointer-events':'all'
+}));
  g.appendChild(svgEl('ellipse',{cx:2,cy:12,rx:20,ry:6.5,fill:'rgba(0,0,0,.25)'}));
  g.appendChild(svgEl('circle',{r:20,fill:diskFill,stroke:edge,'stroke-width':selected?3.0:2.0}));
  g.appendChild(svgEl('circle',{r:17.5,fill:'none',stroke:'rgba(255,255,255,.14)','stroke-width':1.0}));
@@ -904,6 +986,20 @@ function drawLayer(svg,z,moveMap,attA,attB){
     const path=svgEl('path',{d:pathForCell(x,y,z),fill,stroke,'stroke-width':sw,class:'cell'});
     path.addEventListener('click',()=>{if(!dropSelectedTo(x,y,z))moveSelectedTo(x,y,z);});
     svg.appendChild(path);
+    const hitPath=svgEl('path',{
+  d:pathForCell(x,y,z),
+  fill:'rgba(255,255,255,0.001)',
+  stroke:'transparent',
+  'stroke-width':14,
+  class:'cell-hit',
+  'pointer-events':'all'
+});
+
+hitPath.addEventListener('click',()=>{
+  if(!dropSelectedTo(x,y,z))moveSelectedTo(x,y,z);
+});
+
+svg.appendChild(hitPath);
     const cc=cellCenter(x,y,z);
     addText(svg,`${x},${y}`,cc.sx,cc.sy+3,{fill:'rgba(225,238,250,.56)','font-size':10,'font-weight':800,'text-anchor':'middle','pointer-events':'none'});
   }
@@ -940,9 +1036,28 @@ function draw(){
   [4,3,2,1].forEach(z=>drawLayer(svg,z,moveMap,attA,attB));
   pieces.forEach(p=>{
     const c=cellCenter(p.x,p.y,p.z),inCheck=p.type==='C'&&isInCheck(p.owner);
-    const g=svgEl('g',{class:'piece',transform:`translate(${c.sx+13},${c.sy-5})`,filter:'url(#pieceGlow)'});
-    g.addEventListener('click',e=>{e.stopPropagation();selectPiece(p.id)});
-    drawPieceIcon(g,p.type,p.owner,{selected:p.id===selectedId,inCheck});
+    const g=svgEl('g',{
+  class:'piece',
+  transform:`translate(${c.sx+13},${c.sy-7})`,
+  filter:'url(#pieceGlow)'
+});
+
+
+
+g.addEventListener('click',e=>{
+  e.stopPropagation();
+
+  // If a piece is already selected and this is an enemy piece,
+  // treat tapping/clicking the enemy piece as a capture attempt.
+  if(selected && p.owner !== selected.owner){
+    if(moveSelectedTo(p.x,p.y,p.z)) return;
+  }
+
+  // Otherwise select this piece normally.
+  selectPiece(p.id);
+});
+
+drawPieceIcon(g,p.type,p.owner,{selected:p.id===selectedId,inCheck});
     svg.appendChild(g);
   });
   const legacyTurnLabel=document.getElementById('turnLabel');if(legacyTurnLabel){legacyTurnLabel.textContent=ownerName(turn);legacyTurnLabel.className=turn==='A'?'blue':'red';}updateGamePanel();updateClockUI();document.getElementById('modeHelp').textContent=(gameMode==='human'?'Human vs Human':(gameMode==='aivai'?'AI vs AI':'Human vs AI'))+' · '+(timeControlSeconds?formatClock(timeControlSeconds):'Unlimited')+(gameMode==='human'?'':` · ${AI_LEVEL_NAMES[aiLevel]||'AI'}`);if(winner||drawReason)recordCompletedGame();const cb=document.getElementById('checkBox');if(!winner&&isInCheck(turn)){cb.style.display='block';cb.textContent=`${ownerName(turn)} Core is in check.`;}else cb.style.display='none';const wb=document.getElementById('winnerBox');if(winner){wb.style.display='block';wb.textContent=winner==='draw'?(drawReason||'Draw'):(winReason==='timeout'?`${ownerName(winner)} wins on time.`:(winReason==='surround'?`${ownerName(winner)} wins by encirclement.`:(winReason==='mate'?`${ownerName(winner)} wins by checkmate.`:(winReason==='stalemate'?`${ownerName(winner)} wins by blockade.`:`${ownerName(winner)} wins by Core capture.`))));}else wb.style.display='none';document.getElementById('moveLog').textContent=moveHistory.join('\n');document.getElementById('aiReason').textContent=lastAiReason;drawHands();drawEvaluation();updateStatsPanel();}
