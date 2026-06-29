@@ -388,6 +388,97 @@ body.title-visible .notice-lane{display:none!important;}
     height:16px !important;
   }
 }
+
+
+/* v25: mobile UI balance - larger clock and captured pieces, lower top area */
+@media(max-width:640px){
+  body:not(.title-visible) .game-header{
+    padding-top:18px!important;
+    padding-left:8px!important;
+    padding-right:8px!important;
+    padding-bottom:6px!important;
+    gap:6px!important;
+  }
+
+  body:not(.title-visible) .game-clock{
+    min-height:54px!important;
+    padding:9px 12px!important;
+    border-radius:16px!important;
+    gap:10px!important;
+  }
+
+  body:not(.title-visible) .clock-name{
+    font-size:12px!important;
+    line-height:1!important;
+  }
+
+  body:not(.title-visible) .clock-time{
+    font-size:28px!important;
+    line-height:1!important;
+    letter-spacing:.02em!important;
+  }
+
+  body:not(.title-visible) .clock-divider{
+    height:32px!important;
+  }
+
+  body:not(.title-visible) main{
+    padding-top:8px!important;
+    gap:8px!important;
+  }
+
+  body:not(.title-visible) .captured-card{
+    padding:9px 10px!important;
+    border-radius:16px!important;
+  }
+
+  body:not(.title-visible) #handsBox{
+    gap:8px!important;
+  }
+
+  body:not(.title-visible) .hand-row.piece-stand{
+    grid-template-columns:58px 1fr!important;
+    min-height:48px!important;
+    max-height:none!important;
+    overflow:visible!important;
+    gap:6px!important;
+  }
+
+  body:not(.title-visible) .captured-label{
+    font-size:12px!important;
+    line-height:1.15!important;
+  }
+
+  body:not(.title-visible) .captured-list{
+    gap:6px!important;
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
+    flex-wrap:nowrap!important;
+    min-height:42px!important;
+    align-items:center!important;
+  }
+
+  body:not(.title-visible) .captured-list .handpiece{
+    width:42px!important;
+    height:42px!important;
+    min-width:42px!important;
+    min-height:42px!important;
+    padding:0!important;
+    border-radius:10px!important;
+  }
+
+  body:not(.title-visible) .captured-list .handpiece svg{
+    width:34px!important;
+    height:34px!important;
+  }
+
+  body:not(.title-visible) .piece-stand-empty{
+    min-height:38px!important;
+    font-size:11px!important;
+    padding:7px 8px!important;
+  }
+}
+
 </style>
 </head>
 <body class="title-visible">
@@ -1052,7 +1143,8 @@ function pieceMiniSvg(owner,type){
     R:'<path d="M13 10 V39 M13 10 C34 14 34 34 13 39 M10 36 L39 13 M39 13 L32 14 L37 20" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/><circle cx="13" cy="10" r="3" fill="white"/><circle cx="13" cy="39" r="3" fill="white"/>'
   }[type]||'';
   
-  return `<svg width="28" height="28" viewBox="0 0 48 48" aria-hidden="true" style="vertical-align:middle;filter:drop-shadow(0 0 6px ${glow})"><circle cx="24" cy="24" r="21" fill="${bg}" stroke="rgba(255,255,255,.92)" stroke-width="3"/>${symbol}</svg>`;
+  const miniSize = isMobileBoard() ? 34 : 28;
+  return `<svg width="${miniSize}" height="${miniSize}" viewBox="0 0 48 48" aria-hidden="true" style="vertical-align:middle;filter:drop-shadow(0 0 6px ${glow})"><circle cx="24" cy="24" r="21" fill="${bg}" stroke="rgba(255,255,255,.92)" stroke-width="3"/>${symbol}</svg>`;
   }
   function drawLayer(svg,z,moveMap,attA,attB){
   const l=LAYER_LAYOUT[z];
