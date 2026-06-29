@@ -443,17 +443,17 @@ function formatClock(sec){if(!timeControlSeconds)return '∞';sec=Math.max(0,Mat
 function startClock(){clearInterval(clockTimer);lastClockTick=Date.now();clockTimer=setInterval(tickClock,1000);}
 function isGamePausedUI(){return document.body.classList.contains('title-visible')||['gameMenu','confirmMenu','rulesModal','guideScreen'].some(id=>{const el=document.getElementById(id);return el&&!el.classList.contains('is-hidden');});}
 function tickClock(){if(isGamePausedUI()||!timeControlSeconds||winner||drawReason||!clocks||clocks[turn]<=0){lastClockTick=Date.now();return;}const now=Date.now(),delta=Math.max(1,Math.round((now-lastClockTick)/1000));lastClockTick=now;clocks[turn]=Math.max(0,clocks[turn]-delta);if(clocks[turn]<=0){winner=opponent(turn);winReason='timeout';moveHistory.push(`${ownerName(turn)} ran out of time. ${ownerName(winner)} wins on time.`);}draw();}
-let CELL_W=78,CELL_H=44,SKEW_X=48;
+let CELL_W=84; CELL_H=48; SKEW_X=52;
 let LAYER_LAYOUT={4:{ox:210,oy:230,color:'#7dd3fc',fill:'rgba(125,211,252,.055)',name:'Layer 4'},3:{ox:210,oy:425,color:'#67e8f9',fill:'rgba(103,232,249,.050)',name:'Layer 3'},2:{ox:210,oy:620,color:'#38bdf8',fill:'rgba(56,189,248,.055)',name:'Layer 2'},1:{ox:210,oy:815,color:'#0ea5e9',fill:'rgba(14,165,233,.060)',name:'Layer 1'}};
 function isMobileBoard(){return window.matchMedia&&window.matchMedia('(max-width:640px)').matches;}
 function updateBoardLayout(){
   const svg=document.getElementById('board');
-  CELL_W=78; CELL_H=44; SKEW_X=48;
+  CELL_W=84; CELL_H=48; SKEW_X=52;
   LAYER_LAYOUT={
     4:{ox:210,oy:230,color:'#6fa8dc',fill:'rgba(70,120,190,.050)',name:'Layer 4'},
-    3:{ox:210,oy:425,color:'#5b95cf',fill:'rgba(55,105,170,.050)',name:'Layer 3'},
-    2:{ox:210,oy:620,color:'#4d86c4',fill:'rgba(45,90,155,.055)',name:'Layer 2'},
-    1:{ox:210,oy:815,color:'#3f78b9',fill:'rgba(35,75,140,.060)',name:'Layer 1'}
+    3:{ox:210,oy:445,color:'#5b95cf',fill:'rgba(55,105,170,.050)',name:'Layer 3'},
+    2:{ox:210,oy:660,color:'#4d86c4',fill:'rgba(45,90,155,.055)',name:'Layer 2'},
+    1:{ox:210,oy:875,color:'#3f78b9',fill:'rgba(35,75,140,.060)',name:'Layer 1'}
   };
   if(!svg)return;
   if(isMobileBoard() && !document.body.classList.contains('title-visible')){
@@ -1051,9 +1051,10 @@ function pieceMiniSvg(owner,type){
     S:'<path d="M13 39 C14 29 18 24 24 24 C30 24 34 29 35 39 Z" fill="white"/><path d="M16 21 C17 12 31 12 32 21 Z" fill="white"/><path d="M24 7 V13" stroke="white" stroke-width="4" stroke-linecap="round"/><path d="M36 23 L43 27 V36 L36 41 L29 36 V27 Z" fill="white"/><path d="M28 25 L28 38" stroke="#0b1b33" stroke-width="2" stroke-linecap="round"/>',
     R:'<path d="M13 10 V39 M13 10 C34 14 34 34 13 39 M10 36 L39 13 M39 13 L32 14 L37 20" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/><circle cx="13" cy="10" r="3" fill="white"/><circle cx="13" cy="39" r="3" fill="white"/>'
   }[type]||'';
-  return `<svg width="28" height="28" viewBox="0 0 48 48" aria-hidden="true" style="vertical-align:middle;filter:drop-shadow(0 0 6px ${glow})"><circle cx="24" cy="24" r="22" fill="${bg}" stroke="white" stroke-width="3"/>${symbol}</svg>`;
-}
-function drawLayer(svg,z,moveMap,attA,attB){
+  
+  return `<svg width="28" height="28" viewBox="0 0 48 48" aria-hidden="true" style="vertical-align:middle;filter:drop-shadow(0 0 6px ${glow})"><circle cx="24" cy="24" r="21" fill="${bg}" stroke="rgba(255,255,255,.92)" stroke-width="3"/>${symbol}</svg>`;
+  }
+  function drawLayer(svg,z,moveMap,attA,attB){
   const l=LAYER_LAYOUT[z];
   for(let x=1;x<=SIZE;x++)for(let y=1;y<=SIZE;y++){
     const k=key(x,y,z),m=moveMap.get(k);
