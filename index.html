@@ -390,7 +390,7 @@ body.title-visible .notice-lane{display:none!important;}
 }
 
 
-/* v25: mobile UI balance - larger clock and captured pieces, lower top area */
+/* v26: mobile UI balance - avoid bottom action overlap on real iPhone */
 @media(max-width:640px){
   body:not(.title-visible) .game-header{
     padding-top:18px!important;
@@ -477,6 +477,10 @@ body.title-visible .notice-lane{display:none!important;}
     font-size:11px!important;
     padding:7px 8px!important;
   }
+
+  body:not(.title-visible) .board-wrap{
+    margin-bottom:10px!important;
+  }
 }
 
 </style>
@@ -558,7 +562,7 @@ function updateBoardLayout(){
     const capturedH=captured ? captured.getBoundingClientRect().height : 0;
     const actionsH=actions ? actions.getBoundingClientRect().height : 0;
     const noticeH=notice ? notice.getBoundingClientRect().height : 0;
-    const chromeGap=14;
+    const chromeGap=54; // v26: extra clearance so the board does not sit under the fixed bottom buttons on real iPhone Safari/PWA
     const available=Math.max(320, Math.floor(vh - headerH - capturedH - actionsH - noticeH - chromeGap));
     if(boardWrap){
       boardWrap.style.height=available+'px';
