@@ -2915,7 +2915,7 @@
         const chromeGap = 24; // v26.1: keep bottom clearance while the captured stand is more compact
         const available = Math.max(320, Math.floor(vh - headerH - capturedH - actionsH - noticeH - chromeGap));
         if (boardWrap) {
-          boardWrap.style.height = available + 'px';
+          boardWrap.style.height = (available + 28) + 'px';
           boardWrap.style.minHeight = '0';
         }
         svg.style.width = '100%';
