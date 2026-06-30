@@ -488,6 +488,25 @@
       outline: 4px solid rgba(168, 85, 247, .35);
       background: linear-gradient(180deg, rgba(168, 85, 247, .34), rgba(2, 6, 23, .65))
     }
+   
+
+    .rule-piece-row{
+        display:flex;
+        align-items:center;
+        gap:12px;
+        margin:10px 0;
+    }
+
+    .rule-piece-row svg{
+        width:32px;
+        height:32px;
+        flex-shrink:0;
+    }
+
+    .rule-piece-row span{
+        color:var(--muted);
+        font-size:13px;
+    }
 
     .hidden-dev {
       display: none !important
@@ -2771,6 +2790,11 @@
   <div id="gameMenu" class="overlay is-hidden">
     <div class="menu-panel">
       <h2>Menu</h2><button class="primary" type="button" onclick="closeGameMenu()">Resume Game</button>
+
+      <button type="button" onclick="toggleLegalMoves()" id="legalMovesBtn">
+          Legal Moves: ON
+      </button>
+
       <div class="menu-sep"></div><button type="button" onclick="openSetupFromGame()">New Game</button><button
         type="button" onclick="openRulesModal()">Rules</button><button type="button" onclick="confirmMainMenu()">Main
         Menu</button>
@@ -2791,9 +2815,8 @@
         square.</p>
       <p><b>Victory:</b> capture the enemy Core, checkmate it, encircle a checked Core with no escape squares, or
         completely block the enemy.</p>
-      <p><b>Pieces:</b><br>★ Core: moves 1 square along any of the six axes.<br>● Soldier: moves 1 square along any of
-        the six axes.<br>┃ Lancer: slides any distance along one axis until blocked.<br>◇ Dia: slides along 3D diagonals
-        until blocked.<br>✚ Ranger: jumps 1 axis step plus 1 diagonal step. It can jump over pieces.</p>
+      <p><b>Pieces</b></p>
+      <div id="rulesPieceList"></div>
       <p><b>Captured pieces:</b> captured non-Core pieces go to your piece stand. Blue drops on Layer 2; Red drops on
         Layer 3.</p><button class="primary" type="button" onclick="closeRulesModal()">Close</button>
     </div>
@@ -3508,10 +3531,10 @@
         const k = key(x, y, z), m = moveMap.get(k);
         let fill = (x + y) % 2 === 0 ? 'rgba(42,86,145,.48)' : 'rgba(15,28,50,.58)';
         let stroke = 'rgba(120,184,232,.58)', sw = 1.45;
-        if (attA.has(k) && attB.has(k)) fill = 'rgba(138,98,48,.36)';
-        else if (attA.has(k)) fill = 'rgba(58,114,185,.60)';
-        else if (attB.has(k)) fill = 'rgba(145,52,70,.58)';
-        if (m) { fill = m.drop ? 'rgba(138,98,48,.52)' : (m.capture ? 'rgba(163,58,79,.68)' : 'rgba(47,123,169,.60)'); stroke = m.capture ? '#ef7184' : (m.drop ? '#b88b34' : '#6ba7d9'); sw = 3.0; }
+        //if (attA.has(k) && attB.has(k)) fill = 'rgba(138,98,48,.36)';
+        //else if (attA.has(k)) fill = 'rgba(0,255,0,.90)';
+        //else if (attB.has(k)) fill = 'rgba(145,52,70,.58)';
+        if (m) {fill = m.drop ? 'rgba(255,241,153,.30)' : (m.capture ? 'rgba(255,196,120,.42)' : 'rgba(255,241,153,.30)');stroke = m.capture ? '#ffd08a' : (m.drop ? '#ffe082' : '#ffe082');sw = 3.0;}
         const path = svgEl('path', { d: pathForCell(x, y, z), fill, stroke, 'stroke-width': sw, class: 'cell' });
         path.addEventListener('click', () => { if (!dropSelectedTo(x, y, z)) moveSelectedTo(x, y, z); });
         svg.appendChild(path);
@@ -3550,6 +3573,7 @@
     }
     function toggleHelpPanel() { document.body.classList.toggle('help-open'); }
     function draw() {
+      updateLegalMovesButton();
       updateBoardLayout();
       const svg = document.getElementById('board'); svg.innerHTML = '';
       const defs = svgEl('defs');
@@ -3630,10 +3654,67 @@
     function openGameMenu() { clearTimeout(aiTimer); document.getElementById('gameMenu')?.classList.remove('is-hidden'); }
     function closeGameMenu() { document.getElementById('gameMenu')?.classList.add('is-hidden'); scheduleAiIfNeeded(); }
     function confirmMainMenu() { closeGameMenu(); document.getElementById('confirmMenu')?.classList.remove('is-hidden'); }
+    function toggleLegalMoves() {
+        showLegalMoves = !showLegalMoves;
+        updateLegalMovesButton();
+        draw();
+    }
+        
+    function updateLegalMovesButton() {
+        const btn = document.getElementById('legalMovesBtn');
+        if (btn) {
+            btn.textContent = 'Legal Moves: ' + (showLegalMoves ? 'ON' : 'OFF');
+        }
+    }
     function closeConfirmMenu() { document.getElementById('confirmMenu')?.classList.add('is-hidden'); }
     function returnToMainMenu() { saveGame(); clearTimeout(aiTimer); showTitle(); }
     function openSetupFromGame() { clearTimeout(aiTimer); closeGameMenu(); openSetup(); }
-    function openRulesModal() { document.getElementById('rulesModal')?.classList.remove('is-hidden'); }
+    
+    function rulesPieceIcon(type) {
+        const icons = {
+            C: '♔',
+            S: '🛡',
+            L: '🗼',
+            D: '◆',
+            R: '🏹'
+        };
+
+        return `
+            <div class="rules-piece-icon">
+                ${icons[type] || '?'}
+            </div>
+        `;
+    }
+
+    function renderRulesPieces() {
+        const el = document.getElementById('rulesPieceList');
+        if (!el) return;
+
+        el.innerHTML = `
+            <div class="rule-piece-row">
+                ${rulesPieceIcon('C')}
+                <div><b>Core</b><br><span>Moves 1 square along any of the six axes. Protect this piece.</span></div>
+            </div>
+            <div class="rule-piece-row">
+                ${rulesPieceIcon('S')}
+                <div><b>Soldier</b><br><span>Moves 1 square along any of the six axes.</span></div>
+            </div>
+            <div class="rule-piece-row">
+                ${rulesPieceIcon('L')}
+                <div><b>Lancer</b><br><span>Slides any distance along one axis until blocked.</span></div>
+            </div>
+            <div class="rule-piece-row">
+                ${rulesPieceIcon('D')}
+                <div><b>Dia</b><br><span>Slides along 3D diagonals until blocked.</span></div>
+            </div>
+            <div class="rule-piece-row">
+                ${rulesPieceIcon('R')}
+                <div><b>Ranger</b><br><span>Jumps 1 axis step plus 1 diagonal step. It can jump over pieces.</span></div>
+            </div>
+        `;
+    }
+
+    function openRulesModal() { renderRulesPieces();document.getElementById('rulesModal')?.classList.remove('is-hidden'); }
     function closeRulesModal() { document.getElementById('rulesModal')?.classList.add('is-hidden'); }
     function openRulesFromTitle() { openRulesModal(); }
     function openGuide(i = 0) { guideIndex = i; renderGuide(); const g = document.getElementById('guideScreen'); if (g) g.classList.remove('is-hidden'); }
